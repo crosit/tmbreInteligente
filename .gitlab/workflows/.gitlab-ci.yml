@@ -1,0 +1,47 @@
+stages:
+  - ci
+variables:
+  APP_NAME: menita-app-api-gateway
+  DOCKER_REGISTRY: registry.digitalocean.com/menita-repository
+
+publish_qa:
+  stage: ci
+  image:
+    name: docker:latest
+  services:
+    - docker:19-dind
+  before_script:
+    - x=$(pwd)
+    - cd ~
+    - wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1.66.0-linux-amd64.tar.gz
+    - tar xf ~/doctl-1.66.0-linux-amd64.tar.gz
+    - mv ~/doctl /usr/local/bin
+    - doctl auth init --access-token $DIGITAL_OCEAN_TOKEN
+    - doctl registry login
+    - cd $x
+  script:
+    - docker build . -f docker/prod/Dockerfile -t $DOCKER_REGISTRY/$APP_NAME:test-$CI_COMMIT_SHA
+    - docker push $DOCKER_REGISTRY/$APP_NAME:test-$CI_COMMIT_SHA
+  only:
+    - test
+
+publish_prod:
+  stage: ci
+  image:
+    name: docker:latest
+  services:
+    - docker:19-dind
+  before_script:
+    - x=$(pwd)
+    - cd ~
+    - wget https://github.com/digitalocean/doctl/releases/download/v1.66.0/doctl-1.66.0-linux-amd64.tar.gz
+    - tar xf ~/doctl-1.66.0-linux-amd64.tar.gz
+    - mv ~/doctl /usr/local/bin
+    - doctl auth init --access-token $DIGITAL_OCEAN_TOKEN
+    - doctl registry login
+    - cd $x
+  script:
+    - docker build . -f docker/prod/Dockerfile -t $DOCKER_REGISTRY/$APP_NAME:production-$CI_COMMIT_SHA
+    - docker push $DOCKER_REGISTRY/$APP_NAME:production-$CI_COMMIT_SHA
+  only:
+    - master

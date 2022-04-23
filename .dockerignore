@@ -1,0 +1,7 @@
+node_modules
+dist
+tsconfig.tsbuildinfo
+*.md
+node_modules
+.gitignore
+.gitlab
